@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator - ATLABO Check-In</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #B22222 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo img {
+            max-height: 120px;
+            width: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #8B0000;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 400;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            outline: none;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .url-input:focus {
+            border-color: #8B0000;
+        }
+
+        .generate-btn {
+            background: #8B0000;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: 500;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 30px;
+        }
+
+        .generate-btn:hover {
+            background: #A61616;
+            transform: translateY(-1px);
+        }
+
+        .qr-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            border: 2px solid #e1e1e1;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            color: #333;
+            line-height: 1.6;
+            margin-left: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="atlabologo.png" alt="ATLABO Logo" id="logoImg" style="display: none;">
+        </div>
+        
+        <h1>QR Code Generator</h1>
+        <p style="color: #666; margin-bottom: 30px;">Generate a QR code for your check-in system</p>
+        
+        <input type="text" 
+               class="url-input" 
+               id="urlInput" 
+               placeholder="Enter your GitHub Pages URL (e.g., https://nahom8423.github.io/registrationatlabo/)"
+               value="">
+        
+        <button class="generate-btn" onclick="generateQR()">Generate QR Code</button>
+        
+        <div class="qr-container hidden" id="qrContainer">
+            <h3 style="color: #8B0000; margin-bottom: 15px;">Your QR Code</h3>
+            <div id="qrcode"></div>
+            <button class="download-btn" onclick="downloadQR()">Download QR Code</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to use:</h3>
+            <ol>
+                <li>Enter your GitHub Pages URL above</li>
+                <li>Click "Generate QR Code"</li>
+                <li>Download the QR code image</li>
+                <li>Print and display at your event location</li>
+                <li>People can scan with their phone cameras to access check-in</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <script>
+        let qrCodeDataURL = '';
+
+        // Load logo
+        window.addEventListener('load', function() {
+            const logoImg = document.getElementById('logoImg');
+            const img = new Image();
+            img.onload = function() {
+                logoImg.style.display = 'block';
+            };
+            img.onerror = function() {
+                logoImg.style.display = 'none';
+            };
+            img.src = 'atlabologo.png';
+
+            // Set default URL if we can detect it
+            const currentDomain = window.location.hostname;
+            if (currentDomain.includes('github.io')) {
+                document.getElementById('urlInput').value = window.location.origin + window.location.pathname.replace('qr-generator.html', '');
+            }
+        });
+
+        function generateQR() {
+            const url = document.getElementById('urlInput').value.trim();
+            
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert('Please enter a valid URL starting with http:// or https://');
+                return;
+            }
+
+            // Clear previous QR code
+            document.getElementById('qrcode').innerHTML = '';
+            
+            // Generate QR code
+            QRCode.toCanvas(document.createElement('canvas'), url, {
+                width: 256,
+                height: 256,
+                color: {
+                    dark: '#8B0000',  // ATLABO red color
+                    light: '#FFFFFF'
+                },
+                margin: 2
+            }, function (error, canvas) {
+                if (error) {
+                    console.error(error);
+                    alert('Error generating QR code');
+                    return;
+                }
+                
+                // Display the QR code
+                document.getElementById('qrcode').appendChild(canvas);
+                document.getElementById('qrContainer').classList.remove('hidden');
+                
+                // Store data URL for download
+                qrCodeDataURL = canvas.toDataURL('image/png');
+            });
+        }
+
+        function downloadQR() {
+            if (!qrCodeDataURL) {
+                alert('Please generate a QR code first');
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.download = 'atlabo-checkin-qr-code.png';
+            link.href = qrCodeDataURL;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Allow Enter key to generate QR
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateQR();
+            }
+        });
+    </script>
+</body>
+</html>
