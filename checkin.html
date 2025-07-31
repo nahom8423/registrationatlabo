@@ -283,8 +283,7 @@
             middleName: 'Middle Name',    // Column name for Middle Name (optional)
             lastName: 'Last name',        // Column name for Last Name (note: lowercase 'n')
             email: 'E-Mail',              // Column name for Email (note: hyphen)
-            phone: 'Phone Number',        // Column name for Phone (optional)
-            date: 'date'                  // Column name for Date (lowercase)
+            phone: 'Phone Number'         // Column name for Phone (optional)
         };
         
         // ================================
@@ -322,7 +321,6 @@
                     lastName: row[COLUMN_MAPPING.lastName] || '',
                     email: row[COLUMN_MAPPING.email] || '',
                     phone: row[COLUMN_MAPPING.phone] || '',
-                    date: row[COLUMN_MAPPING.date] || '',
                     uniqueId: `member_${index}` // Add unique ID for reliable selection
                 })).filter(member => member.firstName && member.lastName); // Remove empty rows
                 
@@ -411,7 +409,6 @@
             const displayName = `${selectedMember.firstName} ${selectedMember.middleName ? selectedMember.middleName + ' ' : ''}${selectedMember.lastName}`;
             const displayEmail = selectedMember.email || 'N/A';
             const displayPhone = selectedMember.phone || 'N/A';
-            const displayDate = selectedMember.date || 'N/A';
             
             const personDetails = document.getElementById('personDetails');
             personDetails.innerHTML = `
@@ -419,7 +416,6 @@
                 <p><strong>Name:</strong> ${displayName}</p>
                 <p><strong>Email:</strong> ${displayEmail}</p>
                 <p><strong>Phone:</strong> ${displayPhone}</p>
-                <p><strong>Date:</strong> ${displayDate}</p>
                 ${statusText}
             `;
             

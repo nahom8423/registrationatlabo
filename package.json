@@ -1,0 +1,25 @@
+{
+  "name": "registrationatlabo",
+  "version": "1.0.0",
+  "description": "- Place your logo file as `logo.png` in the same directory as `checkin.html` - The system will automatically detect and display the logo - Supported formats: PNG, JPG, GIF",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nahom8423/registrationatlabo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nahom8423/registrationatlabo/issues"
+  },
+  "homepage": "https://github.com/nahom8423/registrationatlabo#readme",
+  "dependencies": {
+    "http-server": "^14.1.1",
+    "puppeteer": "^24.15.0"
+  }
+}
