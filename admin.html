@@ -171,6 +171,23 @@
             color: #155724;
         }
 
+        .checkout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkout-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
         .time-badge {
             background: #e3f2fd;
             color: #1565c0;
@@ -267,11 +284,12 @@
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="checkInTable">
                     <tr>
-                        <td colspan="6" class="loading">Loading check-in data...</td>
+                        <td colspan="7" class="loading">Loading check-in data...</td>
                     </tr>
                 </tbody>
             </table>
@@ -387,7 +405,7 @@
             const tbody = document.getElementById('checkInTable');
             
             if (filteredCheckIns.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="no-data">No check-ins found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="no-data">No check-ins found</td></tr>';
                 return;
             }
             
@@ -404,6 +422,7 @@
                         <td>${checkIn.email || 'N/A'}</td>
                         <td>${checkIn.phone || 'N/A'}</td>
                         <td><span class="status-badge status-checked-in">Checked In</span></td>
+                        <td><button class="checkout-btn" onclick="checkOutMember('${checkIn.id}', '${checkIn.memberId}')">Check Out</button></td>
                     </tr>
                 `;
             }).join('');
@@ -461,6 +480,38 @@
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
+        }
+
+        // Check out member
+        async function checkOutMember(checkInId, memberId) {
+            if (!confirm('Are you sure you want to check out this member?')) {
+                return;
+            }
+
+            try {
+                if (window.firebaseEnabled) {
+                    // Remove from Firebase
+                    const { getDatabase, ref, remove } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+                    const db = getDatabase();
+                    const checkInRef = ref(db, `checkIns/${checkInId}`);
+                    await remove(checkInRef);
+                    console.log('Member checked out from Firebase:', memberId);
+                } else {
+                    // Remove from localStorage
+                    let localCheckIns = JSON.parse(localStorage.getItem('checkIns') || '[]');
+                    localCheckIns = localCheckIns.filter(checkIn => 
+                        !(checkIn.memberId === memberId && checkIn.timestamp === checkInId)
+                    );
+                    localStorage.setItem('checkIns', JSON.stringify(localCheckIns));
+                    console.log('Member checked out locally:', memberId);
+                    
+                    // Refresh the display
+                    loadCheckInData();
+                }
+            } catch (error) {
+                console.error('Error checking out member:', error);
+                alert('Error checking out member. Please try again.');
+            }
         }
 
         // Initialize
