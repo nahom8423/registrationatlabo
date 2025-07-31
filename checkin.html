@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-In System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #B22222 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo img {
+            max-height: 120px;
+            width: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #8B0000;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            font-weight: 400;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #8B0000;
+        }
+
+        input[type="text"].dropdown-open {
+            border-radius: 10px 10px 0 0;
+            border-bottom-color: transparent;
+        }
+
+        .suggestions {
+            position: absolute;
+            top: calc(100% - 1px);
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #8B0000;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: left;
+            transition: background-color 0.2s;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9ff;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-confirm {
+            background: #8B0000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 8px;
+            min-width: 140px;
+        }
+
+        .btn-confirm:hover {
+            background: #A61616;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.2);
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: #666;
+            border: 2px solid #ddd;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 8px;
+            min-width: 140px;
+        }
+
+        .btn-cancel:hover {
+            background: #f5f5f5;
+            border-color: #bbb;
+            color: #444;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .member-info {
+            background: #f8f9ff;
+            border: 1px solid #e1e1e1;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .member-info h3 {
+            color: #8B0000;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .person-details {
+            text-align: left;
+            margin: 15px 0;
+        }
+
+        .person-details p {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .person-details strong {
+            color: #333;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="atlabologo.png" alt="Logo" id="logoImg" style="display: none;">
+        </div>
+        
+        <h1>Check-In</h1>
+        
+        <div class="search-container">
+            <input type="text" id="nameSearch" placeholder="Start typing your name..." autocomplete="off">
+            <div class="suggestions" id="suggestions"></div>
+        </div>
+        
+        <div class="member-info" id="memberInfo">
+            <h3>Please confirm this is you:</h3>
+            <div class="person-details" id="personDetails"></div>
+            <button class="btn-confirm" onclick="confirmCheckIn()">Yes, Check Me In</button>
+            <button class="btn-cancel" onclick="clearSelection()">This is not me</button>
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            Successfully checked in! Welcome!
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, onValue, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        // ================================
+        // FIREBASE CONFIGURATION
+        // ================================
+        // Firebase configuration for registrationatlabo project
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLxfj-As5LGYXxNfYBU34jFUgyPLoq2qk",
+            authDomain: "registrationatlabo.firebaseapp.com",
+            databaseURL: "https://registrationatlabo-default-rtdb.firebaseio.com",
+            projectId: "registrationatlabo",
+            storageBucket: "registrationatlabo.firebasestorage.app",
+            messagingSenderId: "1036623295371",
+            appId: "1:1036623295371:web:f76c23744bb2b54fec758e"
+        };
+        
+        // Initialize Firebase
+        let app, database;
+        let firebaseEnabled = false;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            firebaseEnabled = true;
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.warn('Firebase not configured. Check-ins will only work locally.', error);
+            firebaseEnabled = false;
+        }
+        
+        // Make Firebase functions available globally
+        window.firebaseEnabled = firebaseEnabled;
+        window.database = database;
+        window.firebaseRef = ref;
+        window.firebasePush = push;
+        window.firebaseOnValue = onValue;
+        window.firebaseServerTimestamp = serverTimestamp;
+    </script>
+    
+    <script>
+        // ================================
+        // EXCEL FILE CONFIGURATION
+        // ================================
+        // 1. Upload your Excel file to this directory
+        // 2. Change the filename below to match your Excel file name
+        const EXCEL_FILENAME = 'members.xlsx'; // <-- CHANGE THIS TO YOUR EXCEL FILE NAME
+        
+        // 3. Configure your Excel column names below (case-sensitive)
+        // If your Excel has different column names, update these:
+        const COLUMN_MAPPING = {
+            memberId: 'Member ID',        // Column name for Member ID
+            firstName: 'First Name',      // Column name for First Name  
+            lastName: 'Last Name',        // Column name for Last Name
+            email: 'Email',               // Column name for Email
+            phone: 'Phone Number',        // Column name for Phone (optional)
+            date: 'Date'                  // Column name for Date
+        };
+        
+        // ================================
+        // DATA LOADING (DO NOT MODIFY BELOW)
+        // ================================
+        let members = [];
+        
+        // Sample data for testing (will be replaced when Excel is loaded)
+        const sampleMembers = [
+            {
+                memberId: "001",
+                firstName: "John",
+                lastName: "Smith",
+                email: "john.smith@email.com",
+                phone: "555-0123",
+                date: "2024-01-15"
+            },
+            {
+                memberId: "002",
+                firstName: "Jane",
+                lastName: "Johnson",
+                email: "jane.johnson@email.com",
+                phone: "555-0124",
+                date: "2024-01-16"
+            },
+            {
+                memberId: "003",
+                firstName: "Michael",
+                lastName: "Brown",
+                email: "michael.brown@email.com",
+                phone: "555-0125",
+                date: "2024-01-17"
+            },
+            {
+                memberId: "004",
+                firstName: "Sarah",
+                lastName: "Davis",
+                email: "sarah.davis@email.com",
+                phone: "555-0126",
+                date: "2024-01-18"
+            },
+            {
+                memberId: "005",
+                firstName: "David",
+                lastName: "Wilson",
+                email: "david.wilson@email.com",
+                phone: "555-0127",
+                date: "2024-01-19"
+            },
+            {
+                memberId: "006",
+                firstName: "Emily",
+                lastName: "Miller",
+                email: "emily.miller@email.com",
+                phone: "555-0128",
+                date: "2024-01-20"
+            },
+            {
+                memberId: "007",
+                firstName: "Robert",
+                lastName: "Garcia",
+                email: "robert.garcia@email.com",
+                phone: "555-0129",
+                date: "2024-01-21"
+            },
+            {
+                memberId: "008",
+                firstName: "Lisa",
+                lastName: "Anderson",
+                email: "lisa.anderson@email.com",
+                phone: "555-0130",
+                date: "2024-01-22"
+            },
+            {
+                memberId: "009",
+                firstName: "Christopher",
+                lastName: "Taylor",
+                email: "christopher.taylor@email.com",
+                phone: "555-0131",
+                date: "2024-01-23"
+            },
+            {
+                memberId: "010",
+                firstName: "Amanda",
+                lastName: "Thomas",
+                email: "amanda.thomas@email.com",
+                phone: "555-0132",
+                date: "2024-01-24"
+            },
+            {
+                memberId: "011",
+                firstName: "Daniel",
+                lastName: "Martinez",
+                email: "daniel.martinez@email.com",
+                phone: "555-0133",
+                date: "2024-01-25"
+            },
+            {
+                memberId: "012",
+                firstName: "Jessica",
+                lastName: "Rodriguez",
+                email: "jessica.rodriguez@email.com",
+                phone: "555-0134",
+                date: "2024-01-26"
+            },
+            {
+                memberId: "013",
+                firstName: "Matthew",
+                lastName: "Lee",
+                email: "matthew.lee@email.com",
+                phone: "555-0135",
+                date: "2024-01-27"
+            },
+            {
+                memberId: "014",
+                firstName: "Ashley",
+                lastName: "White",
+                email: "ashley.white@email.com",
+                phone: "555-0136",
+                date: "2024-01-28"
+            },
+            {
+                memberId: "015",
+                firstName: "James",
+                lastName: "Clark",
+                email: "james.clark@email.com",
+                phone: "555-0137",
+                date: "2024-01-29"
+            }
+        ];
+
+        // Function to load Excel file
+        async function loadExcelData() {
+            try {
+                console.log('Attempting to load Excel file:', EXCEL_FILENAME);
+                const response = await fetch(EXCEL_FILENAME);
+                
+                if (!response.ok) {
+                    throw new Error(`Excel file not found: ${EXCEL_FILENAME}`);
+                }
+                
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                
+                // Get the first worksheet
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // Convert to JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                
+                // Map Excel columns to our format
+                members = jsonData.map(row => ({
+                    memberId: row[COLUMN_MAPPING.memberId] || '',
+                    firstName: row[COLUMN_MAPPING.firstName] || '',
+                    lastName: row[COLUMN_MAPPING.lastName] || '',
+                    email: row[COLUMN_MAPPING.email] || '',
+                    phone: row[COLUMN_MAPPING.phone] || '',
+                    date: row[COLUMN_MAPPING.date] || ''
+                })).filter(member => member.firstName && member.lastName); // Remove empty rows
+                
+                console.log(`Successfully loaded ${members.length} members from Excel file`);
+                console.log('Sample member:', members[0]);
+                
+            } catch (error) {
+                console.warn('Could not load Excel file:', error.message);
+                console.log('Using sample data instead');
+                members = sampleMembers;
+            }
+        }
+
+        const searchInput = document.getElementById('nameSearch');
+        const suggestions = document.getElementById('suggestions');
+        const memberInfo = document.getElementById('memberInfo');
+        const successMessage = document.getElementById('successMessage');
+        
+        let selectedMember = null;
+        let checkedInMembers = new Set(); // Track who has checked in
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            
+            if (query.length < 2) {
+                suggestions.style.display = 'none';
+                searchInput.classList.remove('dropdown-open');
+                memberInfo.style.display = 'none';
+                return;
+            }
+
+            const matches = members.filter(member => {
+                const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
+                const reverseName = `${member.lastName} ${member.firstName}`.toLowerCase();
+                const phone = member.phone || '';
+                
+                return fullName.includes(query) || 
+                       reverseName.includes(query) ||
+                       member.firstName.toLowerCase().includes(query) ||
+                       member.lastName.toLowerCase().includes(query) ||
+                       phone.includes(query);
+            });
+
+            if (matches.length > 0) {
+                suggestions.innerHTML = matches.map(member => {
+                    const displayName = `${member.firstName} ${member.lastName}`;
+                    const displayPhone = member.phone ? ` • ${member.phone}` : '';
+                    return `<div class="suggestion-item" onclick="selectMember('${member.memberId}')">
+                                <strong>${displayName}</strong><br>
+                                <small>Member ID: ${member.memberId}${displayPhone}</small>
+                            </div>`;
+                }).join('');
+                
+                suggestions.style.display = 'block';
+                searchInput.classList.add('dropdown-open');
+            } else {
+                suggestions.style.display = 'none';
+                searchInput.classList.remove('dropdown-open');
+            }
+            
+            selectedMember = null;
+        });
+
+        function selectMember(memberId) {
+            selectedMember = members.find(m => m.memberId === memberId);
+            if (selectedMember) {
+                searchInput.value = `${selectedMember.firstName} ${selectedMember.lastName}`;
+                suggestions.style.display = 'none';
+                searchInput.classList.remove('dropdown-open');
+                showMemberInfo();
+            }
+        }
+
+        function showMemberInfo() {
+            if (!selectedMember) return;
+            
+            const alreadyCheckedIn = isAlreadyCheckedIn(selectedMember.memberId);
+            const statusText = alreadyCheckedIn ? 
+                '<p style="color: #28a745; font-weight: bold;">✅ Already Checked In</p>' : 
+                '<p style="color: #ffc107; font-weight: bold;">⏳ Not Checked In</p>';
+            
+            const personDetails = document.getElementById('personDetails');
+            personDetails.innerHTML = `
+                <p><strong>Member ID:</strong> ${selectedMember.memberId}</p>
+                <p><strong>Name:</strong> ${selectedMember.firstName} ${selectedMember.lastName}</p>
+                <p><strong>Email:</strong> ${selectedMember.email}</p>
+                ${selectedMember.phone ? `<p><strong>Phone:</strong> ${selectedMember.phone}</p>` : ''}
+                <p><strong>Date:</strong> ${selectedMember.date}</p>
+                ${statusText}
+            `;
+            
+            // Update button states
+            const confirmBtn = document.querySelector('.btn-confirm');
+            if (alreadyCheckedIn) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Already Checked In';
+                confirmBtn.style.opacity = '0.6';
+            } else {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Yes, Check Me In';
+                confirmBtn.style.opacity = '1';
+            }
+            
+            memberInfo.style.display = 'block';
+        }
+
+        async function confirmCheckIn() {
+            if (!selectedMember) return;
+            
+            try {
+                const checkInData = {
+                    memberId: selectedMember.memberId,
+                    name: `${selectedMember.firstName} ${selectedMember.lastName}`,
+                    email: selectedMember.email,
+                    phone: selectedMember.phone || '',
+                    timestamp: window.firebaseEnabled ? window.firebaseServerTimestamp() : new Date().toISOString(),
+                    date: new Date().toLocaleDateString(),
+                    time: new Date().toLocaleTimeString()
+                };
+                
+                if (window.firebaseEnabled) {
+                    // Save to Firebase for real-time syncing
+                    const checkInsRef = window.firebaseRef(window.database, 'checkIns');
+                    await window.firebasePush(checkInsRef, checkInData);
+                    console.log('Check-in saved to Firebase:', checkInData);
+                } else {
+                    // Save locally if Firebase not available
+                    let localCheckIns = JSON.parse(localStorage.getItem('checkIns') || '[]');
+                    localCheckIns.push(checkInData);
+                    localStorage.setItem('checkIns', JSON.stringify(localCheckIns));
+                    console.log('Check-in saved locally:', checkInData);
+                }
+                
+                // Add to local tracking for immediate UI updates
+                checkedInMembers.add(selectedMember.memberId);
+                
+                memberInfo.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                // Reset form after 3 seconds
+                setTimeout(() => {
+                    clearForm();
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error saving check-in:', error);
+                alert('Error saving check-in. Please try again.');
+            }
+        }
+
+        function clearSelection() {
+            memberInfo.style.display = 'none';
+            selectedMember = null;
+        }
+
+        function clearForm() {
+            searchInput.value = '';
+            memberInfo.style.display = 'none';
+            successMessage.style.display = 'none';
+            suggestions.style.display = 'none';
+            searchInput.classList.remove('dropdown-open');
+            selectedMember = null;
+        }
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-container')) {
+                suggestions.style.display = 'none';
+                searchInput.classList.remove('dropdown-open');
+            }
+        });
+
+        // Handle enter key
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && selectedMember) {
+                confirmCheckIn();
+            }
+        });
+
+        // Load existing check-ins from Firebase or localStorage
+        function loadExistingCheckIns() {
+            if (window.firebaseEnabled) {
+                // Listen for real-time updates from Firebase
+                const checkInsRef = window.firebaseRef(window.database, 'checkIns');
+                window.firebaseOnValue(checkInsRef, (snapshot) => {
+                    const data = snapshot.val();
+                    checkedInMembers.clear();
+                    
+                    if (data) {
+                        Object.values(data).forEach(checkIn => {
+                            checkedInMembers.add(checkIn.memberId);
+                        });
+                        console.log(`Loaded ${checkedInMembers.size} check-ins from Firebase`);
+                    }
+                });
+            } else {
+                // Load from localStorage if Firebase not available
+                const localCheckIns = JSON.parse(localStorage.getItem('checkIns') || '[]');
+                checkedInMembers.clear();
+                localCheckIns.forEach(checkIn => {
+                    checkedInMembers.add(checkIn.memberId);
+                });
+                console.log(`Loaded ${checkedInMembers.size} check-ins from localStorage`);
+            }
+        }
+
+        // Check if member is already checked in
+        function isAlreadyCheckedIn(memberId) {
+            return checkedInMembers.has(memberId);
+        }
+
+        // Initialize the application
+        async function initializeApp() {
+            // Load logo
+            const logoImg = document.getElementById('logoImg');
+            const img = new Image();
+            img.onload = function() {
+                logoImg.style.display = 'block';
+            };
+            img.onerror = function() {
+                logoImg.style.display = 'none';
+            };
+            img.src = 'atlabologo.png';
+
+            // Load Excel data
+            await loadExcelData();
+            
+            // Load existing check-ins
+            loadExistingCheckIns();
+            
+            console.log('Application initialized successfully');
+        }
+
+        // Start the application when page loads
+        window.addEventListener('load', initializeApp);
+    </script>
+</body>
+</html>
