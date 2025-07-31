@@ -281,10 +281,10 @@
             memberId: 'Member ID',        // Column name for Member ID
             firstName: 'First Name',      // Column name for First Name
             middleName: 'Middle Name',    // Column name for Middle Name (optional)
-            lastName: 'Last Name',        // Column name for Last Name
-            email: 'Email',               // Column name for Email
+            lastName: 'Last name',        // Column name for Last Name (note: lowercase 'n')
+            email: 'E-Mail',              // Column name for Email (note: hyphen)
             phone: 'Phone Number',        // Column name for Phone (optional)
-            date: 'Date'                  // Column name for Date
+            date: 'date'                  // Column name for Date (lowercase)
         };
         
         // ================================
@@ -315,14 +315,15 @@
                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
                 
                 // Map Excel columns to our format
-                members = jsonData.map(row => ({
-                    memberId: row[COLUMN_MAPPING.memberId] || '',
+                members = jsonData.map((row, index) => ({
+                    memberId: row[COLUMN_MAPPING.memberId] || `auto_${index}`,
                     firstName: row[COLUMN_MAPPING.firstName] || '',
                     middleName: row[COLUMN_MAPPING.middleName] || '',
                     lastName: row[COLUMN_MAPPING.lastName] || '',
                     email: row[COLUMN_MAPPING.email] || '',
                     phone: row[COLUMN_MAPPING.phone] || '',
-                    date: row[COLUMN_MAPPING.date] || ''
+                    date: row[COLUMN_MAPPING.date] || '',
+                    uniqueId: `member_${index}` // Add unique ID for reliable selection
                 })).filter(member => member.firstName && member.lastName); // Remove empty rows
                 
                 console.log(`Successfully loaded ${members.length} members from Excel file`);
@@ -370,7 +371,7 @@
                 suggestions.innerHTML = matches.map(member => {
                     const displayName = `${member.firstName} ${member.middleName ? member.middleName + ' ' : ''}${member.lastName}`;
                     const displayPhone = member.phone ? member.phone : 'N/A';
-                    return `<div class="suggestion-item" onclick="selectMember('${member.memberId}')">
+                    return `<div class="suggestion-item" onclick="selectMember('${member.uniqueId}')">
                                 <strong>${displayName}</strong><br>
                                 <small>${displayPhone}</small>
                             </div>`;
@@ -386,8 +387,10 @@
             selectedMember = null;
         });
 
-        function selectMember(memberId) {
-            selectedMember = members.find(m => m.memberId === memberId);
+        function selectMember(uniqueId) {
+            console.log('Selecting member with uniqueId:', uniqueId);
+            selectedMember = members.find(m => m.uniqueId === uniqueId);
+            console.log('Found member:', selectedMember);
             if (selectedMember) {
                 const displayName = `${selectedMember.firstName} ${selectedMember.middleName ? selectedMember.middleName + ' ' : ''}${selectedMember.lastName}`;
                 searchInput.value = displayName;
