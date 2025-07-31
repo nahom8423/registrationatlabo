@@ -219,6 +219,10 @@
         <div class="success-message" id="successMessage">
             Successfully checked in! Welcome!
         </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="admin.html" style="color: #8B0000; text-decoration: none; font-size: 0.9rem; opacity: 0.7;">Admin Panel</a>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -278,7 +282,8 @@
         // If your Excel has different column names, update these:
         const COLUMN_MAPPING = {
             memberId: 'Member ID',        // Column name for Member ID
-            firstName: 'First Name',      // Column name for First Name  
+            firstName: 'First Name',      // Column name for First Name
+            middleName: 'Middle Name',    // Column name for Middle Name (optional)
             lastName: 'Last Name',        // Column name for Last Name
             email: 'Email',               // Column name for Email
             phone: 'Phone Number',        // Column name for Phone (optional)
@@ -290,129 +295,7 @@
         // ================================
         let members = [];
         
-        // Sample data for testing (will be replaced when Excel is loaded)
-        const sampleMembers = [
-            {
-                memberId: "001",
-                firstName: "John",
-                lastName: "Smith",
-                email: "john.smith@email.com",
-                phone: "555-0123",
-                date: "2024-01-15"
-            },
-            {
-                memberId: "002",
-                firstName: "Jane",
-                lastName: "Johnson",
-                email: "jane.johnson@email.com",
-                phone: "555-0124",
-                date: "2024-01-16"
-            },
-            {
-                memberId: "003",
-                firstName: "Michael",
-                lastName: "Brown",
-                email: "michael.brown@email.com",
-                phone: "555-0125",
-                date: "2024-01-17"
-            },
-            {
-                memberId: "004",
-                firstName: "Sarah",
-                lastName: "Davis",
-                email: "sarah.davis@email.com",
-                phone: "555-0126",
-                date: "2024-01-18"
-            },
-            {
-                memberId: "005",
-                firstName: "David",
-                lastName: "Wilson",
-                email: "david.wilson@email.com",
-                phone: "555-0127",
-                date: "2024-01-19"
-            },
-            {
-                memberId: "006",
-                firstName: "Emily",
-                lastName: "Miller",
-                email: "emily.miller@email.com",
-                phone: "555-0128",
-                date: "2024-01-20"
-            },
-            {
-                memberId: "007",
-                firstName: "Robert",
-                lastName: "Garcia",
-                email: "robert.garcia@email.com",
-                phone: "555-0129",
-                date: "2024-01-21"
-            },
-            {
-                memberId: "008",
-                firstName: "Lisa",
-                lastName: "Anderson",
-                email: "lisa.anderson@email.com",
-                phone: "555-0130",
-                date: "2024-01-22"
-            },
-            {
-                memberId: "009",
-                firstName: "Christopher",
-                lastName: "Taylor",
-                email: "christopher.taylor@email.com",
-                phone: "555-0131",
-                date: "2024-01-23"
-            },
-            {
-                memberId: "010",
-                firstName: "Amanda",
-                lastName: "Thomas",
-                email: "amanda.thomas@email.com",
-                phone: "555-0132",
-                date: "2024-01-24"
-            },
-            {
-                memberId: "011",
-                firstName: "Daniel",
-                lastName: "Martinez",
-                email: "daniel.martinez@email.com",
-                phone: "555-0133",
-                date: "2024-01-25"
-            },
-            {
-                memberId: "012",
-                firstName: "Jessica",
-                lastName: "Rodriguez",
-                email: "jessica.rodriguez@email.com",
-                phone: "555-0134",
-                date: "2024-01-26"
-            },
-            {
-                memberId: "013",
-                firstName: "Matthew",
-                lastName: "Lee",
-                email: "matthew.lee@email.com",
-                phone: "555-0135",
-                date: "2024-01-27"
-            },
-            {
-                memberId: "014",
-                firstName: "Ashley",
-                lastName: "White",
-                email: "ashley.white@email.com",
-                phone: "555-0136",
-                date: "2024-01-28"
-            },
-            {
-                memberId: "015",
-                firstName: "James",
-                lastName: "Clark",
-                email: "james.clark@email.com",
-                phone: "555-0137",
-                date: "2024-01-29"
-            }
-        ];
+        // Data will be loaded from Excel file
 
         // Function to load Excel file
         async function loadExcelData() {
@@ -438,6 +321,7 @@
                 members = jsonData.map(row => ({
                     memberId: row[COLUMN_MAPPING.memberId] || '',
                     firstName: row[COLUMN_MAPPING.firstName] || '',
+                    middleName: row[COLUMN_MAPPING.middleName] || '',
                     lastName: row[COLUMN_MAPPING.lastName] || '',
                     email: row[COLUMN_MAPPING.email] || '',
                     phone: row[COLUMN_MAPPING.phone] || '',
@@ -449,8 +333,8 @@
                 
             } catch (error) {
                 console.warn('Could not load Excel file:', error.message);
-                console.log('Using sample data instead');
-                members = sampleMembers;
+                console.log('No Excel file found. Please upload members.xlsx');
+                members = [];
             }
         }
 
@@ -473,7 +357,7 @@
             }
 
             const matches = members.filter(member => {
-                const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
+                const fullName = `${member.firstName} ${member.middleName ? member.middleName + ' ' : ''}${member.lastName}`.toLowerCase();
                 const reverseName = `${member.lastName} ${member.firstName}`.toLowerCase();
                 const phone = member.phone || '';
                 
@@ -481,16 +365,17 @@
                        reverseName.includes(query) ||
                        member.firstName.toLowerCase().includes(query) ||
                        member.lastName.toLowerCase().includes(query) ||
+                       (member.middleName && member.middleName.toLowerCase().includes(query)) ||
                        phone.includes(query);
             });
 
             if (matches.length > 0) {
                 suggestions.innerHTML = matches.map(member => {
-                    const displayName = `${member.firstName} ${member.lastName}`;
-                    const displayPhone = member.phone ? ` • ${member.phone}` : '';
+                    const displayName = `${member.firstName} ${member.middleName ? member.middleName + ' ' : ''}${member.lastName}`;
+                    const displayPhone = member.phone ? member.phone : 'N/A';
                     return `<div class="suggestion-item" onclick="selectMember('${member.memberId}')">
                                 <strong>${displayName}</strong><br>
-                                <small>Member ID: ${member.memberId}${displayPhone}</small>
+                                <small>${displayPhone}</small>
                             </div>`;
                 }).join('');
                 
@@ -507,7 +392,8 @@
         function selectMember(memberId) {
             selectedMember = members.find(m => m.memberId === memberId);
             if (selectedMember) {
-                searchInput.value = `${selectedMember.firstName} ${selectedMember.lastName}`;
+                const displayName = `${selectedMember.firstName} ${selectedMember.middleName ? selectedMember.middleName + ' ' : ''}${selectedMember.lastName}`;
+                searchInput.value = displayName;
                 suggestions.style.display = 'none';
                 searchInput.classList.remove('dropdown-open');
                 showMemberInfo();
@@ -522,13 +408,18 @@
                 '<p style="color: #28a745; font-weight: bold;">✅ Already Checked In</p>' : 
                 '<p style="color: #ffc107; font-weight: bold;">⏳ Not Checked In</p>';
             
+            const displayName = `${selectedMember.firstName} ${selectedMember.middleName ? selectedMember.middleName + ' ' : ''}${selectedMember.lastName}`;
+            const displayEmail = selectedMember.email || 'N/A';
+            const displayPhone = selectedMember.phone || 'N/A';
+            const displayDate = selectedMember.date || 'N/A';
+            
             const personDetails = document.getElementById('personDetails');
             personDetails.innerHTML = `
-                <p><strong>Member ID:</strong> ${selectedMember.memberId}</p>
-                <p><strong>Name:</strong> ${selectedMember.firstName} ${selectedMember.lastName}</p>
-                <p><strong>Email:</strong> ${selectedMember.email}</p>
-                ${selectedMember.phone ? `<p><strong>Phone:</strong> ${selectedMember.phone}</p>` : ''}
-                <p><strong>Date:</strong> ${selectedMember.date}</p>
+                <p><strong>Member ID:</strong> ${selectedMember.memberId || 'N/A'}</p>
+                <p><strong>Name:</strong> ${displayName}</p>
+                <p><strong>Email:</strong> ${displayEmail}</p>
+                <p><strong>Phone:</strong> ${displayPhone}</p>
+                <p><strong>Date:</strong> ${displayDate}</p>
                 ${statusText}
             `;
             
@@ -551,11 +442,12 @@
             if (!selectedMember) return;
             
             try {
+                const fullName = `${selectedMember.firstName} ${selectedMember.middleName ? selectedMember.middleName + ' ' : ''}${selectedMember.lastName}`;
                 const checkInData = {
                     memberId: selectedMember.memberId,
-                    name: `${selectedMember.firstName} ${selectedMember.lastName}`,
-                    email: selectedMember.email,
-                    phone: selectedMember.phone || '',
+                    name: fullName,
+                    email: selectedMember.email || 'N/A',
+                    phone: selectedMember.phone || 'N/A',
                     timestamp: window.firebaseEnabled ? window.firebaseServerTimestamp() : new Date().toISOString(),
                     date: new Date().toLocaleDateString(),
                     time: new Date().toLocaleTimeString()
